@@ -10,6 +10,12 @@ pool:
   name: Unity Windows Agents
   demands: JDK
 
+variables:
+  buildConfiguration: 'Release'
+  version.MajorMinor.Master: '0.1'
+  version.Revision.Master: $[counter(variables['version.MajorMinor.Master'], 0)]
+  versionNumber.Master: '$(version.MajorMinor.Master).$(version.Revision.Master)'
+
 steps:
 - task: UnityBuildTask@3
   inputs:
@@ -20,9 +26,11 @@ steps:
 - powershell: |
    Write-Host "##vso[task.setvariable variable=Android_Home;]C:\AndroidSDK"
   displayName: 'PowerShell Script'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
 - task: AndroidSigning@3
   displayName: 'Signing and aligning APK file(s) $(Build.BinariesDirectory)/*.apk'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     apkFiles: '$(Build.BinariesDirectory)/*.apk'
     apksignerKeystoreFile: '9e0392c3-92c0-42db-9201-79c730159c78'
@@ -32,18 +40,22 @@ steps:
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     SourceFolder: '$(Build.BinariesDirectory)'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: 'Publish Artifact: drop'
 
 - task: AppCenterDistribute@3
   displayName: 'Deploy $(Build.ArtifactStagingDirectory)/drop.apk to Visual Studio App Center'
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     serverEndpoint: VSAP
     appSlug: maksIV975/TestApp
+    buildVersion: '$(versionNumber.Master)'
     appFile: '$(Build.ArtifactStagingDirectory)/drop.apk'
     symbolsOption: Android
     releaseNotesInput: 'First release'
