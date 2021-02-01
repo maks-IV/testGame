@@ -19,7 +19,6 @@ steps:
 
 - powershell: |
    Write-Host "##vso[task.setvariable variable=Android_Home;]C:\AndroidSDK"
-   
   displayName: 'PowerShell Script'
 
 - task: AndroidSigning@3
