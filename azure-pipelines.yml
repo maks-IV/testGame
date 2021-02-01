@@ -39,4 +39,12 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: drop'
 
-
+- task: AppCenterDistribute@3
+  displayName: 'Deploy $(Build.ArtifactStagingDirectory)/drop.apk to Visual Studio App Center'
+  inputs:
+    serverEndpoint: VSAP
+    appSlug: maksIV975/TestApp
+    appFile: '$(Build.ArtifactStagingDirectory)/drop.apk'
+    symbolsOption: Android
+    releaseNotesInput: 'First release'
+    isSilent: false
